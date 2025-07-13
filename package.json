@@ -1,0 +1,34 @@
+{
+  "name": "fact-check-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/env": "^5.0.2",
+    "axios": "^1.8.4",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.2"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "yarn build && node dist/server.js",
+    "dev": "nodemon --watch src --ext ts --exec 'yarn build && node dist/server.js'",
+    "lint": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@fastify/type-provider-typebox": "^5.1.0",
+    "@sinclair/typebox": "^0.34.31",
+    "@types/node": "^22.13.14",
+    "eslint": "^9.23.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.5",
+    "nodemon": "^3.1.9",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
