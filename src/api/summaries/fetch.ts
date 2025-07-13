@@ -5,20 +5,38 @@ export async function fetchSummaries(): Promise<Summary[]> {
     {
       topic: 'eth',
       summary:
-        'Ethereum has seen increased developer activity this week, with continued optimism around L2 scaling solutions.',
+        'Ethereum activity is up, driven by optimism around L2 rollups and restaking protocols.',
       sentiment: 'bullish',
+    },
+    {
+      topic: 'btc',
+      summary:
+        'Bitcoin remains relatively stable despite minor ETF-related sell pressure.',
+      sentiment: 'neutral',
     },
     {
       topic: 'sol',
       summary:
-        'Solana experienced a spike in transaction volume, but concerns remain over centralization of validators.',
+        'Solana posted strong developer growth numbers, but validator concentration is still a concern.',
+      sentiment: 'neutral',
+    },
+    {
+      topic: 'doge',
+      summary:
+        'Dogecoin has seen a resurgence in social media mentions after a meme revival.',
+      sentiment: 'bullish',
+    },
+    {
+      topic: 'eth',
+      summary:
+        'Debates continue over Ethereum’s decentralization as L2 adoption grows.',
       sentiment: 'neutral',
     },
     {
       topic: 'btc',
       summary:
-        'Bitcoin remains stable despite macroeconomic uncertainty, with on-chain data suggesting long-term holder accumulation.',
-      sentiment: 'neutral',
+        'On-chain data shows long-term holders accumulating Bitcoin at lower prices.',
+      sentiment: 'bullish',
     },
   ];
 }

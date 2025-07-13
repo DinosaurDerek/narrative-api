@@ -3,4 +3,5 @@ export type Claim = {
   claimant?: string;
   reviewSource: string;
   url: string;
+  topic: string;
 };

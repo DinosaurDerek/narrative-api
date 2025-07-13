@@ -2,7 +2,11 @@ import { Summary } from '../../types/summaries.js';
 import { fetchSummaries } from './fetch.js';
 import { mapSummaries } from './map.js';
 
-export async function getSummaries(): Promise<Summary[]> {
+export async function getSummaries(topic?: string): Promise<Summary[]> {
   const raw = await fetchSummaries();
-  return mapSummaries(raw);
+  const mapped = mapSummaries(raw);
+
+  return topic
+    ? mapped.filter(s => s.topic.toLowerCase() === topic.toLowerCase())
+    : mapped;
 }
