@@ -11,7 +11,15 @@ import summariesRoutes from './routes/summaries.js';
 import narrativeRoutes from './routes/narratives.js';
 
 const fastify = Fastify({
-  logger: true,
+  logger: {
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        translateTime: 'SYS:standard',
+        ignore: 'pid,hostname',
+      },
+    },
+  },
   ajv: {
     customOptions: {
       strict: 'log',

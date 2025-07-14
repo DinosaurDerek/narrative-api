@@ -19,8 +19,12 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { topic } = request.query;
-      const result = await getNarratives(topic);
-      return result;
+
+      request.log.info({ topic }, 'Generating narratives');
+      const narratives = await getNarratives(topic);
+      request.log.info({ count: narratives.length }, 'Narratives generated');
+
+      return narratives;
     }
   );
 }

@@ -21,11 +21,13 @@ export default async function summariesRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { topic } = request.query as { topic?: string };
 
+      request.log.info({ topic }, 'Generating summaries');
       const summaries = [
         ...(await getFarcasterSummaries()),
         ...(await getDecryptSummaries()),
         ...(await getCoindeskSummaries()),
       ];
+      request.log.info({ count: summaries.length }, 'Summaries generated');
 
       const filtered = topic
         ? summaries.filter(s => s.topic === topic.toLowerCase())
