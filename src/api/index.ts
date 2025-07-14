@@ -17,7 +17,10 @@ function groupByTopic(summaries: Summary[]): Record<string, Summary[]> {
   );
 }
 
-function computeNarrative(topic: string, summaries: Summary[]): Narrative {
+export function computeNarrative(
+  topic: string,
+  summaries: Summary[]
+): Narrative {
   const sources = [...new Set(summaries.map(s => s.source))];
   const summaryCount = summaries.length;
   const narrative = summaries.map(s => s.summary).join(' ');

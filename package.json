@@ -17,7 +17,8 @@
     "build": "tsc",
     "start": "yarn build && node dist/server.js",
     "dev": "nodemon --watch src --ext ts --exec 'yarn build && node dist/server.js'",
-    "lint": "eslint . --fix"
+    "lint": "eslint . --fix",
+    "test": "vitest"
   },
   "devDependencies": {
     "@fastify/type-provider-typebox": "^5.1.0",
@@ -28,7 +29,8 @@
     "eslint-plugin-prettier": "^5.2.5",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=20"
