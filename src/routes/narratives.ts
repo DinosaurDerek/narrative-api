@@ -1,26 +1,10 @@
 import { FastifyInstance } from 'fastify';
-import { Static, Type } from '@sinclair/typebox';
+import { Type } from '@sinclair/typebox';
 
 import { getNarratives } from '../api/index.js';
-
-const QuerySchema = Type.Object({
-  topic: Type.Optional(Type.String()),
-});
-type QueryType = Static<typeof QuerySchema>;
-
-const NarrativeSchema = Type.Object({
-  topic: Type.String(),
-  narrative: Type.String(),
-  summaryCount: Type.Number(),
-  sources: Type.Array(Type.String()),
-  sentiment: Type.Union([
-    Type.Literal('bullish'),
-    Type.Literal('bearish'),
-    Type.Literal('neutral'),
-  ]),
-});
-
-const ResponseSchema = Type.Array(NarrativeSchema);
+import { NarrativeSchema } from '../schemas/narrative.js';
+import { QuerySchema } from '../schemas/query.js';
+import { QueryType } from '../types/query.js';
 
 export default async function (fastify: FastifyInstance) {
   fastify.get<{ Querystring: QueryType }>(
@@ -29,7 +13,7 @@ export default async function (fastify: FastifyInstance) {
       schema: {
         querystring: QuerySchema,
         response: {
-          200: ResponseSchema,
+          200: Type.Array(NarrativeSchema),
         },
       },
     },

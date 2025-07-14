@@ -4,20 +4,8 @@ import { Type } from '@sinclair/typebox';
 import { getFarcasterSummaries } from '../api/farcaster/index.js';
 import { getDecryptSummaries } from '../api/decrypt/index.js';
 import { getCoindeskSummaries } from '../api/coindesk/index.js';
-
-const QuerySchema = Type.Object({
-  topic: Type.Optional(Type.String()),
-});
-const SummarySchema = Type.Object({
-  topic: Type.String(),
-  summary: Type.String(),
-  sentiment: Type.Union([
-    Type.Literal('bullish'),
-    Type.Literal('bearish'),
-    Type.Literal('neutral'),
-  ]),
-  source: Type.String(),
-});
+import { QuerySchema } from '../schemas/query.js';
+import { SummarySchema } from '../schemas/summary.js';
 
 export default async function summariesRoutes(fastify: FastifyInstance) {
   fastify.get(
