@@ -7,6 +7,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import envSetup from './plugins/env.js';
 import corsSetup from './plugins/cors.js';
 import healthRoutes from './routes/health.js';
+import summariesRoutes from './routes/summaries.js';
 import narrativeRoutes from './routes/narratives.js';
 
 const fastify = Fastify({
@@ -42,8 +43,9 @@ fastify.register(envSetup);
 fastify.register(corsSetup);
 
 // Routes
-fastify.register(narrativeRoutes);
 fastify.register(healthRoutes);
+fastify.register(narrativeRoutes);
+fastify.register(summariesRoutes);
 
 const start = async () => {
   try {
