@@ -10,10 +10,10 @@ The repo serves as a backend-focused demo, demonstrating modular design, type sa
 
 ## Live Demo
 
-- **Base URL:** https://narrative-api.onrender.com  
+- **Base URL:** https://narrative-api-kquv.onrender.com  
   → Use API key: `6d9a3c4f9b2e4389a53e0d1c7f4a3bce` (pass as `x-api-key` header)
 
-- **Docs:** https://narrative-api.onrender.com/docs _(auto-generated Swagger UI)_
+- **Docs:** https://narrative-api-kquv.onrender.com/docs _(auto-generated Swagger UI)_
 
 ## Endpoints
 
