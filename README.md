@@ -2,81 +2,122 @@
 
 ## Overview
 
-This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from two narrative-related sources—fact-check claims and topic summaries—and returns them in a unified response. While the data is mocked for now, the architecture is built to scale with real external APIs in the future.
+This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from multiple crypto-related sources—such as Farcaster posts, CoinDesk articles, and Decrypt news—and returns topic-based summaries with sentiment analysis. While the data is static for now, the architecture is built to support real external APIs.
 
-This repo was created as a backend-focused portfolio piece to demonstrate API structure, type safety, modularity, and readiness for real-world integration.
+The repo serves as a backend-focused demo, demonstrating modular design, type safety, structured logging, and readiness for real-world API integration.
+
+> ⚠️ This is a demo. All data is static and generated to simulate external sources.
+
+## Live Demo
+
+- **Base URL:** https://narrative-api.onrender.com  
+  → Use API key: `6d9a3c4f9b2e4389a53e0d1c7f4a3bce` (pass as `x-api-key` header)
+
+- **Docs:** https://narrative-api.onrender.com/docs _(auto-generated Swagger UI)_
 
 ## Endpoints
 
 ### `GET /narratives`
 
-Returns a combined list of claims and summaries:
+Returns high-level narratives by summarizing sentiment and source coverage per topic.  
+Optional query: `?topic=ethereum`
 
 ```json
-{
-  "claims": [
-    {
-      "claim": "Ethereum is switching to proof of stake",
-      "claimant": "Vitalik Buterin",
-      "reviewSource": "Google Fact Check (Mock)",
-      "url": "https://example.com/eth-pos"
-    }
-  ],
-  "summaries": [
-    {
-      "topic": "eth",
-      "summary": "Ethereum has seen increased developer activity this week, with continued optimism around L2 scaling solutions.",
-      "sentiment": "bullish"
-    }
-  ]
-}
+[
+  {
+    "topic": "ethereum",
+    "narrative": "Ethereum is showing strength after ETF approval. Ethereum volumes spike as markets rebound.",
+    "summaryCount": 2,
+    "sources": ["decrypt", "coindesk"],
+    "sentiment": "bullish"
+  }
+]
 ```
 
-Future versions may allow query filtering (e.g. ?topic=eth).
+### `GET /summaries`
+
+Returns all individual source summaries per topic.
+Optional query: `?topic=ethereum`
+
+```json
+[
+  {
+    "topic": "bitcoin",
+    "summary": "BTC dropped 3% after CPI release.",
+    "sentiment": "bearish",
+    "source": "decrypt"
+  }
+]
+```
 
 ## Tech Stack
 
 - **Framework:** Fastify (Node.js)
 - **Language:** Typescript
 - **Schema Validation:** TypeBox
-- **Structure:** Modular API per data source
-- **API Fetching:** Axios (for real external data, if added later)
+- **Mock Data Sources:** Farcaster, CoinDesk, Decrypt
+- **Testing:** Vitest + Fastify Inject
+- **Logging:** Pino (structured logging)
+- **Architecture:** Modular API per source
+- **Docs:** OpenAPI via `@fastify/swagger`
 
 ## Project Structure
 
 ```
 src/
 ├── api/
-│   ├── claims/        # Claim-fetching logic (mocked)
-│   ├── summaries/     # Summary-fetching logic (mocked)
-│   └── index.ts       # Aggregates narrative data
-├── routes/
-│   └── narratives.ts  # GET /narratives endpoint
-├── types/             # Shared types (Claim, Summary)
-└── server.ts          # Fastify setup
+│   ├── coindesk/       # Mock CoinDesk summaries
+│   ├── decrypt/        # Mock Decrypt summaries
+│   ├── farcaster/      # Mock Farcaster post summaries
+│   ├── index.ts        # Aggregates summaries
+├── middlewares/        # Fastify middleware (e.g. API key auth)
+├── routes/             # Route handlers (narratives, summaries)
+├── schemas/            # TypeBox schemas for validation
+├── types/              # Shared types (Summary, Narrative)
+├── plugins/            # Fastify plugins (CORS, ENV)
+├── server.ts           # Fastify instance + registration
+└── tests/              # Unit + route tests
+
 ```
 
-Each data source is isolated into its own module for scalability and clarity.
+Each data source is isolated for clarity and future scalability.
 
-## How to Run
+## Authentication
 
-1. Clone the repo
-2. Install dependencies:
+This API uses a simple API key check via middleware on all routes.
 
-   ```sh
-   npm install
+To make requests:
+
+1. Create a `.env` file:
+   ```env
+   API_KEYS=your_secret_key
+   ```
+2. Include the key in requests:
+   ```
+   GET /narratives
+   Header: x-api-key: your_secret_key
    ```
 
-3. Start the server:
-   ```sh
-   npm run dev
-   ```
+## Getting Started
+
+```bash
+git clone https://github.com/DinosaurDerek/narrative-api
+cd narrative-api
+yarn install
+yarn dev
+```
+
+## Running Tests
+
+```
+yarn test
+```
 
 ## Future Improvements
 
 This repo was built to serve as a flexible starting point for more advanced narrative aggregation tools. Future additions may include:
 
-- Integrating real data from APIs like Google Fact Check, OpenAI, or RSS/news sources
+- Simplify import paths by avoiding .js extensions and explicit index filenames
+- Integrate real APIs (e.g. Farcaster, RSS feeds, news APIs)
 - Generating summaries dynamically via LLMs
-- Filtering or tagging narratives using NLP or crypto context
-- Providing sentiment analysis for token/project discussions
+- Topic-based narrative scoring or ranking
