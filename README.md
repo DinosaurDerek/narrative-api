@@ -15,6 +15,8 @@ The repo serves as a backend-focused demo, demonstrating modular design, type sa
 
 - **Docs:** https://narrative-api-kquv.onrender.com/docs _(auto-generated Swagger UI)_
 
+> Note: The live demo is hosted on a free-tier Render instance, which may take up to a few minutes to respond on the first request due to cold starts. Subsequent requests should respond normally.
+
 ## Endpoints
 
 ### `GET /narratives`
