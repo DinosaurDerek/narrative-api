@@ -1,6 +1,6 @@
+import { prisma } from '../lib/prisma.js';
 import { Summary } from '../types/summary.js';
 import { Narrative } from '../types/narrative.js';
-
 import { getFarcasterSummaries } from './farcaster/index.js';
 import { getDecryptSummaries } from './decrypt/index.js';
 import { getCoindeskSummaries } from './coindesk/index.js';
@@ -56,8 +56,30 @@ export async function getNarratives(topic?: string): Promise<Narrative[]> {
     : allSummaries;
 
   const grouped = groupByTopic(filtered);
+  const now = new Date();
 
-  return Object.entries(grouped).map(([topic, summaries]) =>
+  const narratives = Object.entries(grouped).map(([topic, summaries]) =>
     computeNarrative(topic, summaries)
   );
+
+  // Create Briefs for each narrative (ignore duplicates)
+  for (const narrative of narratives) {
+    try {
+      await prisma.brief.create({
+        data: {
+          date: now,
+          topic: narrative.topic,
+          content: {
+            narrative: narrative.narrative,
+            sentiment: narrative.sentiment,
+          },
+        },
+      });
+    } catch (err: any) {
+      // Skip duplicates due to unique constraint on [date, topic]
+      if (err.code !== 'P2002') console.error('Failed to create brief:', err);
+    }
+  }
+
+  return narratives;
 }

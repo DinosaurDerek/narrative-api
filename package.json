@@ -19,7 +19,12 @@
     "start": "yarn build && node dist/server.js",
     "dev": "nodemon --watch src --ext ts --exec 'yarn build && node dist/server.js'",
     "lint": "eslint . --fix",
-    "test": "vitest"
+    "test": "vitest",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:reset": "prisma migrate reset",
+    "generate": "prisma generate",
+    "studio": "prisma studio",
+    "db:clear": "node --loader ts-node/esm scripts/clearDb.ts"
   },
   "devDependencies": {
     "@fastify/type-provider-typebox": "^5.1.0",
