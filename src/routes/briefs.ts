@@ -31,6 +31,24 @@ export default async function (fastify: FastifyInstance) {
     }
   );
 
+  fastify.get('/briefs/:id', {
+    schema: {
+      params: Type.Object({
+        id: Type.String({ format: 'uuid' }),
+      }),
+      response: {
+        200: BriefSchema,
+      },
+    },
+    async handler(request, reply) {
+      const { id } = request.params as { id: string };
+      const brief = await prisma.brief.findUnique({ where: { id } });
+
+      if (!brief) return reply.code(404).send({ error: 'Brief not found' });
+      return brief;
+    },
+  });
+
   fastify.post(
     '/briefs',
     {
