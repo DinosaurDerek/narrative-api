@@ -6,9 +6,10 @@ import { getDecryptSummaries } from '../api/decrypt/index.js';
 import { getCoindeskSummaries } from '../api/coindesk/index.js';
 import { QuerySchema } from '../schemas/query.js';
 import { SummarySchema } from '../schemas/summary.js';
+import { Query } from '../types/query.js';
 
 export default async function summariesRoutes(fastify: FastifyInstance) {
-  fastify.get(
+  fastify.get<{ Querystring: Query }>(
     '/summaries',
     {
       schema: {

@@ -2,4 +2,4 @@ import { Static } from '@sinclair/typebox';
 
 import { QuerySchema } from '../schemas/query.js';
 
-export type QueryType = Static<typeof QuerySchema>;
+export type Query = Static<typeof QuerySchema>;

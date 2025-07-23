@@ -9,6 +9,7 @@ import corsSetup from './plugins/cors.js';
 import healthRoutes from './routes/health.js';
 import summariesRoutes from './routes/summaries.js';
 import narrativeRoutes from './routes/narratives.js';
+import briefsRoutes from './routes/briefs.js';
 
 const fastify = Fastify({
   logger: {
@@ -33,7 +34,8 @@ await fastify.register(swagger, {
   openapi: {
     info: {
       title: 'Narrative API',
-      description: 'A simple backend demo aggregating claims and summaries.',
+      description:
+        'A backend demo that fetches topic-based narratives, generates summaries, and stores briefs.',
       version: '0.1.0',
     },
   },
@@ -54,6 +56,7 @@ fastify.register(corsSetup);
 fastify.register(healthRoutes);
 fastify.register(narrativeRoutes);
 fastify.register(summariesRoutes);
+fastify.register(briefsRoutes);
 
 const start = async () => {
   try {

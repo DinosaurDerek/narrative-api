@@ -4,10 +4,10 @@ import { Type } from '@sinclair/typebox';
 import { getNarratives } from '../api/index.js';
 import { NarrativeSchema } from '../schemas/narrative.js';
 import { QuerySchema } from '../schemas/query.js';
-import { QueryType } from '../types/query.js';
+import { Query } from '../types/query.js';
 
 export default async function (fastify: FastifyInstance) {
-  fastify.get<{ Querystring: QueryType }>(
+  fastify.get<{ Querystring: Query }>(
     '/narratives',
     {
       schema: {
