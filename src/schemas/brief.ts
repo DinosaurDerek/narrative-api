@@ -1,15 +1,18 @@
 import { Type } from '@sinclair/typebox';
 
-export const BriefSchema = Type.Object({
+export const NarrativeRecordSchema = Type.Object({
   id: Type.String({ format: 'uuid' }),
-  date: Type.String({ format: 'date-time' }),
   topic: Type.String(),
-  content: Type.Unknown(),
-  createdAt: Type.String({ format: 'date-time' }),
+  sentiment: Type.Union([
+    Type.Literal('bullish'),
+    Type.Literal('bearish'),
+    Type.Literal('neutral'),
+  ]),
+  briefId: Type.String({ format: 'uuid' }),
 });
 
-export const BriefInputSchema = Type.Object({
-  date: Type.String({ format: 'date-time' }),
-  topic: Type.String(),
-  content: Type.Unknown(),
+export const BriefSchema = Type.Object({
+  id: Type.String({ format: 'uuid' }),
+  createdAt: Type.String({ format: 'date-time' }),
+  narratives: Type.Array(NarrativeRecordSchema),
 });

@@ -51,33 +51,35 @@ export async function getNarratives(topic?: string): Promise<Narrative[]> {
     ...(await getCoindeskSummaries()),
   ];
 
+  // Local filtering only — most APIs likely can't filter by topic
   const filtered = topic
     ? allSummaries.filter(s => s.topic.toLowerCase() === topic.toLowerCase())
     : allSummaries;
 
   const grouped = groupByTopic(filtered);
-  const now = new Date();
 
   const narratives = Object.entries(grouped).map(([topic, summaries]) =>
     computeNarrative(topic, summaries)
   );
 
-  // Create Briefs for each narrative (ignore duplicates)
-  for (const narrative of narratives) {
-    try {
-      await prisma.brief.create({
-        data: {
-          date: now,
-          topic: narrative.topic,
-          content: {
-            narrative: narrative.narrative,
-            sentiment: narrative.sentiment,
-          },
+  const narrativeRecords = narratives.map(n => ({
+    topic: n.topic,
+    sentiment: n.sentiment,
+  }));
+
+  try {
+    await prisma.brief.create({
+      data: {
+        narratives: {
+          create: narrativeRecords,
         },
-      });
-    } catch (err: any) {
-      // Skip duplicates due to unique constraint on [date, topic]
-      if (err.code !== 'P2002') console.error('Failed to create brief:', err);
+      },
+    });
+  } catch (err: any) {
+    if (err.code === 'P2002') {
+      console.log('Brief for today already exists. Skipping creation.');
+    } else {
+      console.error('Failed to create brief with narratives:', err);
     }
   }
 

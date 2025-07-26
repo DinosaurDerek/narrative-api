@@ -1,14 +1,16 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Fastify from 'fastify';
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
+import { prisma } from '../src/lib/prisma.js';
 import envSetup from '../src/plugins/env.js';
 import corsSetup from '../src/plugins/cors.js';
 import briefsRoutes from '../src/routes/briefs.js';
 
-describe('/briefs endpoints', () => {
+describe('/briefs routes', () => {
   let app: ReturnType<typeof Fastify>;
-  let createdId: string;
+  let briefId: string;
+  let briefDate: string;
 
   beforeAll(async () => {
     app = Fastify().withTypeProvider<TypeBoxTypeProvider>();
@@ -18,88 +20,79 @@ describe('/briefs endpoints', () => {
     await app.ready();
   });
 
+  beforeEach(async () => {
+    const brief = await prisma.brief.create({
+      data: {
+        narratives: {
+          create: [
+            {
+              topic: 'crypto',
+              sentiment: 'bullish',
+            },
+          ],
+        },
+      },
+      include: { narratives: true },
+    });
+
+    briefId = brief.id;
+    briefDate = brief.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
+  });
+
   afterAll(async () => {
     await app.close();
   });
 
-  it('GET /briefs returns an array', async () => {
-    const response = await app.inject({
-      method: 'GET',
-      url: '/briefs',
-    });
-
-    expect(response.statusCode).toBe(200);
-
-    const result = await response.json();
+  it('GET /briefs returns briefs with nested narratives', async () => {
+    const res = await app.inject({ method: 'GET', url: '/briefs' });
+    expect(res.statusCode).toBe(200);
+    const result = await res.json();
 
     expect(Array.isArray(result)).toBe(true);
-  });
-
-  it('POST /briefs creates a new brief', async () => {
-    const response = await app.inject({
-      method: 'POST',
-      url: '/briefs',
-      payload: {
-        date: new Date().toISOString(),
-        topic: 'test-topic',
-        content: { msg: 'hello' },
-      },
+    expect(result[0]).toHaveProperty('narratives');
+    expect(Array.isArray(result[0].narratives)).toBe(true);
+    expect(result[0].narratives[0]).toMatchObject({
+      topic: 'crypto',
+      sentiment: 'bullish',
+      briefId,
     });
-
-    expect(response.statusCode).toBe(201);
-
-    const result = await response.json();
-
-    expect(result).toHaveProperty('id');
-    expect(result.topic).toBe('test-topic');
-    expect(result.content).toEqual({ msg: 'hello' });
-
-    createdId = result.id;
   });
 
-  it('GET /briefs?topic=test-topic returns filtered results', async () => {
-    const response = await app.inject({
+  it('GET /briefs/:id returns a single brief with narratives', async () => {
+    const res = await app.inject({ method: 'GET', url: `/briefs/${briefId}` });
+    expect(res.statusCode).toBe(200);
+    const brief = await res.json();
+
+    expect(brief.id).toBe(briefId);
+    expect(Array.isArray(brief.narratives)).toBe(true);
+    expect(brief.narratives.length).toBeGreaterThan(0);
+  });
+
+  it('GET /briefs/date/:date returns brief for that day', async () => {
+    const res = await app.inject({
       method: 'GET',
-      url: '/briefs?topic=test-topic',
+      url: `/briefs/date/${briefDate}`,
     });
+    expect(res.statusCode).toBe(200);
+    const brief = await res.json();
 
-    expect(response.statusCode).toBe(200);
-
-    const result = await response.json();
-
-    expect(Array.isArray(result)).toBe(true);
-    expect(result.length).toBeGreaterThan(0);
-    result.forEach(item => {
-      expect(item.topic.toLowerCase()).toBe('test-topic');
-    });
+    expect(brief.id).toBe(briefId);
+    expect(Array.isArray(brief.narratives)).toBe(true);
   });
 
-  it('PUT /briefs/:id updates the brief', async () => {
-    const response = await app.inject({
-      method: 'PUT',
-      url: `/briefs/${createdId}`,
-      payload: {
-        date: new Date().toISOString(),
-        topic: 'updated-topic',
-        content: { msg: 'updated' },
-      },
+  it('GET /briefs/:id returns 404 for nonexistent brief', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/briefs/00000000-0000-0000-0000-000000000000',
     });
-
-    expect(response.statusCode).toBe(200);
-
-    const result = await response.json();
-
-    expect(result.topic).toBe('updated-topic');
-    expect(result.content).toEqual({ msg: 'updated' });
+    expect(res.statusCode).toBe(404);
   });
 
-  it('DELETE /briefs/:id deletes the brief', async () => {
-    const response = await app.inject({
-      method: 'DELETE',
-      url: `/briefs/${createdId}`,
+  it('GET /briefs/date/:date returns 404 if no brief exists', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/briefs/date/1999-01-01',
     });
-
-    expect(response.statusCode).toBe(204);
-    expect(response.body).toBe('');
+    expect(res.statusCode).toBe(404);
   });
 });

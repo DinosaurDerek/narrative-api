@@ -2,29 +2,22 @@ import { FastifyInstance } from 'fastify';
 import { Type } from '@sinclair/typebox';
 
 import { prisma } from '../lib/prisma.js';
-import { BriefSchema, BriefInputSchema } from '../schemas/brief.js';
-import { isJsonCompatible } from '../utils/json.js';
-import { BriefInput } from '../types/brief.js';
+import { BriefSchema } from '../schemas/brief.js';
 
 export default async function (fastify: FastifyInstance) {
   fastify.get(
     '/briefs',
     {
       schema: {
-        querystring: Type.Object({
-          topic: Type.Optional(Type.String()),
-        }),
         response: {
           200: Type.Array(BriefSchema),
         },
       },
     },
-    async (request, reply) => {
-      const { topic } = request.query as { topic?: string };
-
+    async (_request, _reply) => {
       const briefs = await prisma.brief.findMany({
-        where: topic ? { topic } : {},
-        orderBy: { date: 'desc' },
+        orderBy: { createdAt: 'desc' },
+        include: { narratives: true },
       });
 
       return briefs;
@@ -42,96 +35,48 @@ export default async function (fastify: FastifyInstance) {
     },
     async handler(request, reply) {
       const { id } = request.params as { id: string };
-      const brief = await prisma.brief.findUnique({ where: { id } });
+      const brief = await prisma.brief.findUnique({
+        where: { id },
+        include: { narratives: true },
+      });
 
       if (!brief) return reply.code(404).send({ error: 'Brief not found' });
+
       return brief;
     },
   });
 
-  fastify.post(
-    '/briefs',
-    {
-      schema: {
-        body: BriefInputSchema,
-        response: {
-          201: BriefSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      const { date, topic, content } = request.body as BriefInput;
-
-      if (!isJsonCompatible(content)) {
-        throw new Error('Invalid JSON content');
-      }
-
-      const newBrief = await prisma.brief.create({
-        data: {
-          date: new Date(date),
-          topic,
-          content: content as any,
-        },
-      });
-
-      reply.code(201).send(newBrief);
-    }
-  );
-
-  fastify.put(
-    '/briefs/:id',
+  fastify.get(
+    '/briefs/date/:date',
     {
       schema: {
         params: Type.Object({
-          id: Type.String({ format: 'uuid' }),
+          date: Type.String({ format: 'date' }), // YYYY-MM-DD
         }),
-        body: BriefInputSchema,
         response: {
           200: BriefSchema,
         },
       },
     },
     async (request, reply) => {
-      const { id } = request.params as { id: string };
-      const { date, topic, content } = request.body as BriefInput;
+      const { date } = request.params as { date: string };
+      const inputDate = new Date(date);
+      const nextDay = new Date(inputDate);
+      nextDay.setDate(inputDate.getDate() + 1);
 
-      if (!isJsonCompatible(content)) {
-        throw new Error('Invalid JSON content');
-      }
-
-      const updatedBrief = await prisma.brief.update({
-        where: { id },
-        data: {
-          date: new Date(date),
-          topic,
-          content: content as any,
+      const brief = await prisma.brief.findFirst({
+        where: {
+          createdAt: {
+            gte: inputDate,
+            lt: nextDay,
+          },
         },
+        include: { narratives: true },
       });
 
-      reply.send(updatedBrief);
-    }
-  );
+      if (!brief) return reply.code(404).send({ error: 'Brief not found' });
 
-  fastify.delete(
-    '/briefs/:id',
-    {
-      schema: {
-        params: Type.Object({
-          id: Type.String({ format: 'uuid' }),
-        }),
-        response: {
-          204: Type.Null(),
-        },
-      },
-    },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-
-      await prisma.brief.delete({
-        where: { id },
-      });
-
-      reply.code(204).send();
+      return brief;
     }
   );
 }
