@@ -2,83 +2,53 @@
 
 ## Overview
 
-This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from multiple crypto-related sources—such as Farcaster posts, CoinDesk articles, and Decrypt news—and returns topic-based summaries with sentiment analysis. While the data is static for now, the architecture is built to support real external APIs.
+This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from multiple crypto-related sources — such as Farcaster posts, CoinDesk articles, and Decrypt news — and returns topic-based summaries with sentiment analysis. While the data is static for now, the architecture is built to support real external APIs. The API also supports persistent, database-backed briefs: snapshots of topic-based narratives and sentiment, linked to their underlying summaries via a NarrativeRecord relation. These are stored in a PostgreSQL database using Prisma.
 
-The repo serves as a backend-focused demo, demonstrating modular design, type safety, structured logging, and readiness for real-world API integration.
+The repo serves as a backend-focused demo, demonstrating modular design, type safety, structured logging, database integration, and readiness for real-world API integration.
 
-> ⚠️ This is a demo. All data is static and generated to simulate external sources.
+> ⚠️ This is a demo. External sources are simulated with static data.
 
 ## Live Demo
 
 - **Base URL:** https://narrative-api-kquv.onrender.com  
   → Use API key: `6d9a3c4f9b2e4389a53e0d1c7f4a3bce` (pass as `x-api-key` header)
 
-- **Docs:** https://narrative-api-kquv.onrender.com/docs _(auto-generated Swagger UI)_
+- **Docs:** https://narrative-api-kquv.onrender.com/docs _(auto-generated Swagger UI)_  
+  → View all available endpoints and request/response schemas
 
 > Note: The live demo is hosted on a free-tier Render instance, which may take up to a few minutes to respond on the first request due to cold starts. Subsequent requests should respond normally.
-
-## Endpoints
-
-### `GET /narratives`
-
-Returns high-level narratives by summarizing sentiment and source coverage per topic.  
-Optional query: `?topic=ethereum`
-
-```json
-[
-  {
-    "topic": "ethereum",
-    "narrative": "Ethereum is showing strength after ETF approval. Ethereum volumes spike as markets rebound.",
-    "summaryCount": 2,
-    "sources": ["decrypt", "coindesk"],
-    "sentiment": "bullish"
-  }
-]
-```
-
-### `GET /summaries`
-
-Returns all individual source summaries per topic.
-Optional query: `?topic=ethereum`
-
-```json
-[
-  {
-    "topic": "bitcoin",
-    "summary": "BTC dropped 3% after CPI release.",
-    "sentiment": "bearish",
-    "source": "decrypt"
-  }
-]
-```
 
 ## Tech Stack
 
 - **Framework:** Fastify (Node.js)
-- **Language:** Typescript
+- **Language:** TypeScript
 - **Schema Validation:** TypeBox
 - **Mock Data Sources:** Farcaster, CoinDesk, Decrypt
 - **Testing:** Vitest + Fastify Inject
 - **Logging:** Pino (structured logging)
 - **Architecture:** Modular API per source
 - **Docs:** OpenAPI via `@fastify/swagger`
+- **Database:** PostgreSQL (via Prisma ORM)
 
 ## Project Structure
 
 ```
+prisma/                 # Prisma schema and migrations
 src/
 ├── api/
 │   ├── coindesk/       # Mock CoinDesk summaries
 │   ├── decrypt/        # Mock Decrypt summaries
 │   ├── farcaster/      # Mock Farcaster post summaries
-│   ├── index.ts        # Aggregates summaries
+│   ├── index.ts        # Combines all summaries
+├── lib/
 ├── middlewares/        # Fastify middleware (e.g. API key auth)
-├── routes/             # Route handlers (narratives, summaries)
+├── plugins/            # Fastify plugins (CORS, ENV)
+├── routes/             # Route handlers (narratives, summaries, etc.)
 ├── schemas/            # TypeBox schemas for validation
 ├── types/              # Shared types (Summary, Narrative)
-├── plugins/            # Fastify plugins (CORS, ENV)
+├── utils/
 ├── server.ts           # Fastify instance + registration
-└── tests/              # Unit + route tests
+tests/                  # Unit + route tests
 
 ```
 
@@ -106,13 +76,53 @@ To make requests:
 git clone https://github.com/DinosaurDerek/narrative-api
 cd narrative-api
 yarn install
+```
+
+Create a `.env` file:
+
+```env
+API_KEYS=your_secret_key
+DATABASE_URL=postgresql://user:password@localhost:5432/narrative
+```
+
+Update the `DATABASE_URL` as needed for your local Postgres setup.
+
+Run initial DB migration:
+
+```bash
+yarn prisma migrate deploy
+```
+
+Start the server:
+
+```bash
+yarn prisma generate
 yarn dev
+```
+
+Optional: Clear DB manually
+
+```bash
+yarn db:clear
 ```
 
 ## Running Tests
 
-```
+```bash
 yarn test
+```
+
+The test setup includes:
+
+- `.env.test` support (isolated test DB)
+- Automatic DB reset before each test suite
+- `--maxWorkers=1` to avoid race conditions with concurrent DB access
+
+Before running tests, ensure your `.env.test` includes a valid `DATABASE_URL` for the test database.
+Then run an initial migration:
+
+```bash
+yarn testdb:reset
 ```
 
 ## Future Improvements
@@ -120,6 +130,9 @@ yarn test
 This repo was built to serve as a flexible starting point for more advanced narrative aggregation tools. Future additions may include:
 
 - Simplify import paths by avoiding .js extensions and explicit index filenames
-- Integrate real APIs (e.g. Farcaster, RSS feeds, news APIs)
+- Integrate live APIs (e.g. Farcaster, RSS feeds, news APIs)
 - Generating summaries dynamically via LLMs
 - Topic-based narrative scoring or ranking
+- Add DB seeding or import/export tools
+- To run tests in parallel, look into per-file databases with Testcontainers or dynamic schemas
+- Consider dotenv-flow to support both .env and .env.test if needed
