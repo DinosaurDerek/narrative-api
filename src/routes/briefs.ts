@@ -37,7 +37,7 @@ export default async function (fastify: FastifyInstance) {
       const { id } = request.params as { id: string };
       const brief = await prisma.brief.findUnique({
         where: { id },
-        include: { narratives: true },
+        include: { narratives: true, notes: true },
       });
 
       if (!brief) return reply.code(404).send({ error: 'Brief not found' });
@@ -71,7 +71,7 @@ export default async function (fastify: FastifyInstance) {
             lt: nextDay,
           },
         },
-        include: { narratives: true },
+        include: { narratives: true, notes: true },
       });
 
       if (!brief) return reply.code(404).send({ error: 'Brief not found' });

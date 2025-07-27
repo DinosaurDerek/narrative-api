@@ -10,6 +10,7 @@ import healthRoutes from './routes/health.js';
 import summariesRoutes from './routes/summaries.js';
 import narrativeRoutes from './routes/narratives.js';
 import briefsRoutes from './routes/briefs.js';
+import notesRoutes from './routes/notes.js';
 
 const fastify = Fastify({
   logger: {
@@ -57,6 +58,7 @@ fastify.register(healthRoutes);
 fastify.register(narrativeRoutes);
 fastify.register(summariesRoutes);
 fastify.register(briefsRoutes);
+fastify.register(notesRoutes);
 
 const start = async () => {
   try {
