@@ -19,11 +19,17 @@ export default async function (fastify: FastifyInstance) {
     },
     async request => {
       const { briefId } = request.params as { briefId: string };
-
-      return prisma.note.findMany({
+      request.log.info({ briefId }, 'Fetching notes for brief');
+      const notes = await prisma.note.findMany({
         where: { briefId },
         orderBy: { createdAt: 'asc' },
       });
+      request.log.info(
+        { briefId, count: notes.length },
+        'Notes fetched for brief'
+      );
+
+      return notes;
     }
   );
 
@@ -41,6 +47,7 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { date } = request.params as { date: string };
+      request.log.info({ date }, 'Fetching notes for brief by date');
       const inputDate = new Date(date);
       const nextDay = new Date(inputDate);
       nextDay.setDate(inputDate.getDate() + 1);
@@ -57,7 +64,15 @@ export default async function (fastify: FastifyInstance) {
         },
       });
 
-      if (!brief) return reply.code(404).send({ error: 'Brief not found' });
+      if (!brief) {
+        request.log.info({ date }, 'No brief found for date');
+        return reply.code(404).send({ error: 'Brief not found' });
+      }
+
+      request.log.info(
+        { date, count: brief.notes.length },
+        'Notes fetched for brief by date'
+      );
 
       return brief.notes;
     }
@@ -81,10 +96,11 @@ export default async function (fastify: FastifyInstance) {
     async (request, reply) => {
       const { briefId } = request.params as { briefId: string };
       const { content } = request.body as { content: string };
-
+      request.log.info({ briefId }, 'Creating note for brief');
       const note = await prisma.note.create({
         data: { briefId, content },
       });
+      request.log.info({ briefId, noteId: note.id }, 'Note created for brief');
 
       return reply.code(201).send(note);
     }
@@ -105,14 +121,15 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const { id } = request.params as { id: string };
       const { content } = request.body as { content: string };
-
+      request.log.info({ id }, 'Updating note');
       const note = await prisma.note.update({
         where: { id },
         data: { content },
       });
+      request.log.info({ id }, 'Note updated');
 
       return note;
     }
@@ -132,7 +149,9 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params as { id: string };
+      request.log.info({ id }, 'Deleting note');
       await prisma.note.delete({ where: { id } });
+      request.log.info({ id }, 'Note deleted');
 
       return reply.code(204).send();
     }

@@ -14,11 +14,13 @@ export default async function (fastify: FastifyInstance) {
         },
       },
     },
-    async (_request, _reply) => {
+    async (request, _reply) => {
+      request.log.info('Fetching all briefs');
       const briefs = await prisma.brief.findMany({
         orderBy: { createdAt: 'desc' },
         include: { narratives: true },
       });
+      request.log.info('Fetching all briefs');
 
       return briefs;
     }
@@ -35,13 +37,18 @@ export default async function (fastify: FastifyInstance) {
     },
     async handler(request, reply) {
       const { id } = request.params as { id: string };
+      request.log.info({ id }, 'Fetching brief by id');
       const brief = await prisma.brief.findUnique({
         where: { id },
         include: { narratives: true, notes: true },
       });
 
-      if (!brief) return reply.code(404).send({ error: 'Brief not found' });
+      if (!brief) {
+        request.log.info({ id }, 'Brief not found');
+        return reply.code(404).send({ error: 'Brief not found' });
+      }
 
+      request.log.info({ id }, 'Brief found');
       return brief;
     },
   });
@@ -60,6 +67,7 @@ export default async function (fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { date } = request.params as { date: string };
+      request.log.info({ date }, 'Fetching brief by date');
       const inputDate = new Date(date);
       const nextDay = new Date(inputDate);
       nextDay.setDate(inputDate.getDate() + 1);
@@ -74,16 +82,13 @@ export default async function (fastify: FastifyInstance) {
         include: { narratives: true, notes: true },
       });
 
-      if (!brief) return reply.code(404).send({ error: 'Brief not found' });
+      if (!brief) {
+        request.log.info({ date }, 'Brief not found for date');
+        return reply.code(404).send({ error: 'Brief not found' });
+      }
 
+      request.log.info({ id: brief.id, date }, 'Brief found for date');
       return brief;
     }
   );
-
-  // Temporary cleanup endpoint for free-tier hosted database
-  fastify.delete('/dev/cleanup-duplicate-briefs', async () => {
-    const deleted = await prisma.brief.deleteMany();
-
-    return { deletedCount: deleted.count };
-  });
 }
