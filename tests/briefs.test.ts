@@ -2,10 +2,10 @@ import Fastify from 'fastify';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 
-import { prisma } from '../src/lib/prisma.js';
 import envSetup from '../src/plugins/env.js';
 import corsSetup from '../src/plugins/cors.js';
 import briefsRoutes from '../src/routes/briefs.js';
+import { createBrief } from '../src/utils/brief.js';
 
 describe('/briefs routes', () => {
   let app: ReturnType<typeof Fastify>;
@@ -21,20 +21,12 @@ describe('/briefs routes', () => {
   });
 
   beforeEach(async () => {
-    const brief = await prisma.brief.create({
-      data: {
-        narratives: {
-          create: [
-            {
-              topic: 'crypto',
-              sentiment: 'bullish',
-            },
-          ],
-        },
+    const brief = await createBrief([
+      {
+        topic: 'crypto',
+        sentiment: 'bullish',
       },
-      include: { narratives: true },
-    });
-
+    ]);
     briefId = brief.id;
     briefDate = brief.createdAt.toISOString().split('T')[0]; // YYYY-MM-DD
   });

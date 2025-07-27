@@ -79,4 +79,11 @@ export default async function (fastify: FastifyInstance) {
       return brief;
     }
   );
+
+  // Temporary cleanup endpoint for free-tier hosted database
+  fastify.delete('/dev/cleanup-duplicate-briefs', async () => {
+    const deleted = await prisma.brief.deleteMany();
+
+    return { deletedCount: deleted.count };
+  });
 }

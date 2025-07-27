@@ -1,9 +1,9 @@
-import { prisma } from '../lib/prisma.js';
 import { Summary } from '../types/summary.js';
 import { Narrative } from '../types/narrative.js';
 import { getFarcasterSummaries } from './farcaster/index.js';
 import { getDecryptSummaries } from './decrypt/index.js';
 import { getCoindeskSummaries } from './coindesk/index.js';
+import { createBrief } from '../utils/brief.js';
 
 function groupByTopic(summaries: Summary[]): Record<string, Summary[]> {
   return summaries.reduce(
@@ -68,13 +68,7 @@ export async function getNarratives(topic?: string): Promise<Narrative[]> {
   }));
 
   try {
-    await prisma.brief.create({
-      data: {
-        narratives: {
-          create: narrativeRecords,
-        },
-      },
-    });
+    await createBrief(narrativeRecords);
   } catch (err: any) {
     if (err.code === 'P2002') {
       console.log('Brief for today already exists. Skipping creation.');

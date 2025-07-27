@@ -6,6 +6,7 @@ import { prisma } from '../src/lib/prisma.js';
 import envSetup from '../src/plugins/env.js';
 import corsSetup from '../src/plugins/cors.js';
 import notesRoutes from '../src/routes/notes.js';
+import { createBrief } from '../src/utils/brief.js';
 
 describe('/notes routes', () => {
   let app: ReturnType<typeof Fastify>;
@@ -22,11 +23,8 @@ describe('/notes routes', () => {
   });
 
   beforeEach(async () => {
-    await prisma.brief.deleteMany();
     // Create a brief and a note for it
-    const brief = await prisma.brief.create({
-      data: {},
-    });
+    const brief = await createBrief();
     briefId = brief.id;
     briefDate = brief.createdAt.toISOString().split('T')[0];
 
@@ -126,8 +124,9 @@ describe('/notes routes', () => {
   });
 
   it('GET /briefs/:briefId/notes returns empty array for brief with no notes', async () => {
+    await prisma.brief.deleteMany();
     // Create a brief with no notes
-    const brief = await prisma.brief.create({ data: {} });
+    const brief = await createBrief();
     const res = await app.inject({
       method: 'GET',
       url: `/briefs/${brief.id}/notes`,

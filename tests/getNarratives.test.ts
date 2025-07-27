@@ -30,7 +30,6 @@ describe('getNarratives()', () => {
     const narratives = await getNarratives();
 
     const brief = await prisma.brief.findFirst({
-      where: { createdAt: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
       include: { narratives: true },
     });
 
