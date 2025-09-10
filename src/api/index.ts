@@ -67,7 +67,6 @@ export async function getNarratives(topic?: string): Promise<Narrative[]> {
     sentiment: n.sentiment,
   }));
 
-  // TODO: Move brief creation to scheduled cron job
   await createDailyBriefIfNotExists(narrativeRecords);
 
   return narratives;

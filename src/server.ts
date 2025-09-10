@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import './jobs/createBriefJob.js';
+
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
