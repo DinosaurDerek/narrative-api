@@ -2,6 +2,7 @@ import { Brief } from '@prisma/client';
 
 import { prisma } from '../lib/prisma.js';
 import { NarrativeRecord } from '../types/brief.js';
+import { Narrative } from '../types/narrative.js';
 
 export function getBriefCreatedAtDate(): Date {
   const createdAt = new Date();
@@ -24,7 +25,7 @@ export async function createBrief(
 }
 
 export async function createDailyBriefIfNotExists(
-  narrativeRecords: NarrativeRecord[] = []
+  narratives: Narrative[] = []
 ): Promise<Brief | null> {
   const today = getBriefCreatedAtDate();
 
@@ -37,6 +38,12 @@ export async function createDailyBriefIfNotExists(
     console.log('Brief for today already exists. Skipping creation.');
     return null;
   }
+
+  // Prepare narrative records for creation
+  const narrativeRecords = narratives.map(n => ({
+    topic: n.topic,
+    sentiment: n.sentiment,
+  }));
 
   // Create a new brief for today
   try {

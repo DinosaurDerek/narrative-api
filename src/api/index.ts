@@ -3,7 +3,6 @@ import { Narrative } from '../types/narrative.js';
 import { getFarcasterSummaries } from './farcaster/index.js';
 import { getDecryptSummaries } from './decrypt/index.js';
 import { getCoindeskSummaries } from './coindesk/index.js';
-import { createDailyBriefIfNotExists } from '../utils/brief.js';
 
 function groupByTopic(summaries: Summary[]): Record<string, Summary[]> {
   return summaries.reduce(
@@ -58,16 +57,7 @@ export async function getNarratives(topic?: string): Promise<Narrative[]> {
 
   const grouped = groupByTopic(filtered);
 
-  const narratives = Object.entries(grouped).map(([topic, summaries]) =>
+  return Object.entries(grouped).map(([topic, summaries]) =>
     computeNarrative(topic, summaries)
   );
-
-  const narrativeRecords = narratives.map(n => ({
-    topic: n.topic,
-    sentiment: n.sentiment,
-  }));
-
-  await createDailyBriefIfNotExists(narrativeRecords);
-
-  return narratives;
 }

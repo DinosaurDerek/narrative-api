@@ -6,6 +6,18 @@ import {
   createBrief,
   createDailyBriefIfNotExists,
 } from '../src/utils/brief.js';
+import type { Narrative } from '../src/types/narrative.js';
+
+function makeNarrative(overrides: Partial<Narrative> = {}): Narrative {
+  return {
+    topic: 'default',
+    narrative: 'some narrative text',
+    summaryCount: 1,
+    sources: ['coindesk'],
+    sentiment: 'neutral',
+    ...overrides,
+  };
+}
 
 describe('brief utils', () => {
   it('getBriefCreatedAtDate returns today at midnight UTC', () => {
@@ -16,7 +28,6 @@ describe('brief utils', () => {
     expect(date.getUTCMinutes()).toBe(0);
     expect(date.getUTCSeconds()).toBe(0);
     expect(date.getUTCMilliseconds()).toBe(0);
-    // Should be today
     expect(date.getUTCFullYear()).toBe(now.getUTCFullYear());
     expect(date.getUTCMonth()).toBe(now.getUTCMonth());
     expect(date.getUTCDate()).toBe(now.getUTCDate());
@@ -30,7 +41,6 @@ describe('brief utils', () => {
 
     expect(brief).toHaveProperty('id');
 
-    // Check in DB
     const found = await prisma.brief.findUnique({
       where: { id: brief.id },
       include: { narratives: true },
@@ -44,7 +54,7 @@ describe('brief utils', () => {
 
   it('createDailyBriefIfNotExists creates a brief if none exists for today', async () => {
     const brief = await createDailyBriefIfNotExists([
-      { topic: 'btc', sentiment: 'bullish' },
+      makeNarrative({ topic: 'btc', sentiment: 'bullish' }),
     ]);
 
     expect(brief).not.toBeNull();
@@ -61,15 +71,15 @@ describe('brief utils', () => {
 
   it('createDailyBriefIfNotExists does not create a duplicate brief for today', async () => {
     const first = await createDailyBriefIfNotExists([
-      { topic: 'btc', sentiment: 'bullish' },
+      makeNarrative({ topic: 'btc', sentiment: 'bullish' }),
     ]);
     const second = await createDailyBriefIfNotExists([
-      { topic: 'eth', sentiment: 'bearish' },
+      makeNarrative({ topic: 'eth', sentiment: 'bearish' }),
     ]);
 
     expect(first).not.toBeNull();
-    expect(second).toBeNull(); // Should skip creation
-    // Only one brief in DB
+    expect(second).toBeNull();
+
     const briefs = await prisma.brief.findMany();
     expect(briefs.length).toBe(1);
   });

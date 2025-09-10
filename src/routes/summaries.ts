@@ -19,7 +19,7 @@ export default async function summariesRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const { topic } = request.query as { topic?: string };
 
       request.log.info({ topic }, 'Generating summaries');

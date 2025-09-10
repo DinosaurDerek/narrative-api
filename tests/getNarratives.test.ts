@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 
-import { prisma } from '../src/lib/prisma.js';
 import { getNarratives } from '../src/api/index.js';
 
 describe('getNarratives()', () => {
@@ -24,22 +23,5 @@ describe('getNarratives()', () => {
 
     expect(narratives.length).toBe(1);
     expect(narratives[0].topic.toLowerCase()).toBe('sol');
-  });
-
-  it('creates a Brief and associated NarrativeRecords in the database', async () => {
-    const narratives = await getNarratives();
-
-    const brief = await prisma.brief.findFirst({
-      include: { narratives: true },
-    });
-
-    expect(brief).not.toBeNull();
-    expect(brief!.narratives.length).toBe(narratives.length);
-
-    narratives.forEach(n => {
-      const record = brief!.narratives.find(r => r.topic === n.topic);
-      expect(record).toBeDefined();
-      expect(record!.sentiment).toBe(n.sentiment);
-    });
   });
 });
