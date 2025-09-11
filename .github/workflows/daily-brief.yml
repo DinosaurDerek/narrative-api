@@ -1,0 +1,20 @@
+name: Daily Brief Cron
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # midnight UTC
+  workflow_dispatch:
+
+jobs:
+  call-narratives-endpoint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call narratives endpoint to trigger brief creation
+        run: |
+          echo "::group::Triggering narratives endpoint"
+          curl -s -X GET "${{ vars.RENDER_URL }}/narratives" \
+            -H "x-api-key: ${{ secrets.API_KEY }}" \
+            --fail -o response.json
+          echo "Response:"
+          cat response.json
+          echo "::endgroup::"

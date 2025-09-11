@@ -4,7 +4,7 @@
 
 This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from multiple crypto-related sources — such as Farcaster posts, CoinDesk articles, and Decrypt news — and returns topic-based summaries with sentiment analysis. While the data is static for now, the architecture is built to support real external APIs.
 
-The API also supports persistent, database-backed briefs: snapshots of topic-based narratives and sentiment, linked to their underlying summaries via a NarrativeRecord relation. These are stored in a PostgreSQL database using Prisma. For demo purposes, daily brief creation is triggered within the `/narratives` endpoint — this is a temporary solution pending support for automated jobs.
+The API also supports persistent, database-backed briefs: snapshots of topic-based narratives and sentiment, linked to their underlying summaries via a NarrativeRecord relation. These are stored in a PostgreSQL database using Prisma. For demo purposes, daily brief creation is triggered both internally (`node-cron`) and externally (GitHub Actions) — the external trigger is a workaround for free-tier hosting limitations where in-app schedulers can’t run reliably.
 
 In addition, a full CRUD Notes feature was added for demonstration purposes, showing additional DB interactions and endpoint patterns.
 
@@ -129,11 +129,35 @@ Then run an initial migration:
 yarn testdb:reset
 ```
 
+## Scheduled Jobs
+
+This project includes support for automated daily brief creation.
+
+### Local/Production Setup (node-cron)
+
+The codebase includes a `createBriefJob` scheduled task (via `node-cron`) that runs daily at midnight.  
+In a normal production environment (e.g. dedicated server, container with uptime), this would automatically generate a new daily brief without external triggers.
+
+### Free-tier Hosting Limitation
+
+On free-tier Render, apps sleep when idle. This prevents in-app schedulers like `node-cron` from firing reliably.
+
+### Workaround (External Trigger)
+
+To make daily jobs run reliably even on free-tier hosting, we use GitHub Actions to call the **`/narratives`** endpoint on a schedule.  
+This wakes the service and triggers daily brief creation externally.
+
+---
+
+This demonstrates two approaches:
+
+1. **In-app scheduling** with `node-cron` (the standard production pattern).
+2. **External orchestration** with GitHub Actions (adapted for free-tier hosting constraints).
+
 ## Future Improvements
 
 This repo was built to serve as a flexible starting point for more advanced narrative aggregation tools. Future additions may include:
 
-- Automate daily brief creation via scheduled job instead of generating in the `/narratives` endpoint (requires database host upgrade)
 - Simplify import paths by avoiding .js extensions and explicit index filenames
 - Integrate live APIs (e.g. Farcaster, RSS feeds, news APIs)
 - Generating summaries dynamically via LLMs
@@ -141,3 +165,4 @@ This repo was built to serve as a flexible starting point for more advanced narr
 - Add DB seeding or import/export tools
 - To run tests in parallel, look into per-file databases with Testcontainers or dynamic schemas
 - Consider dotenv-flow to support both .env and .env.test if needed
+- Once moved off free-tier hosting, retire the GitHub Actions workaround and rely solely on the in-app `node-cron` job for daily brief creation.
