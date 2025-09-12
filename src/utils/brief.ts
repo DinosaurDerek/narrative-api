@@ -35,7 +35,6 @@ export async function createDailyBriefIfNotExists(
   });
 
   if (existingBrief) {
-    console.log('Brief for today already exists. Skipping creation.');
     return null;
   }
 
@@ -47,15 +46,11 @@ export async function createDailyBriefIfNotExists(
 
   // Create a new brief for today
   try {
-    const brief = await createBrief(narrativeRecords);
-    return brief;
+    return await createBrief(narrativeRecords);
   } catch (err: any) {
     if (err.code === 'P2002') {
-      console.log('Brief for today already exists. Skipping creation.');
-    } else {
-      throw err;
+      return null;
     }
-
-    return null;
+    throw err;
   }
 }

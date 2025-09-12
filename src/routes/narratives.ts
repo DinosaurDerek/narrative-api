@@ -25,17 +25,18 @@ export default async function (fastify: FastifyInstance) {
       const narratives = await getNarratives(topic);
       request.log.info({ count: narratives.length }, 'Narratives generated');
 
-      request.log.info({ topic }, 'Generating brief');
-
       // If a topic is specified, skip brief creation
       if (topic) {
         return narratives;
       }
 
+      request.log.info({ topic }, 'Generating brief');
       const brief = await createDailyBriefIfNotExists(narratives);
-      brief
-        ? request.log.info({ brief: brief.id }, 'Brief generated')
-        : request.log.info('Brief already exists, skipping generation');
+      if (brief) {
+        request.log.info({ brief: brief.id }, 'Brief generated');
+      } else {
+        request.log.info('Brief already exists, skipping generation');
+      }
 
       return narratives;
     }
