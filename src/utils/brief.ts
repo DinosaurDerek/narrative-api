@@ -54,3 +54,18 @@ export async function createDailyBriefIfNotExists(
     throw err;
   }
 }
+
+export async function pruneOldBriefs(limit: number = 7): Promise<number> {
+  const briefs = await prisma.brief.findMany({
+    orderBy: { createdAt: 'desc' },
+    skip: limit,
+  });
+
+  if (briefs.length > 0) {
+    await prisma.brief.deleteMany({
+      where: { id: { in: briefs.map(b => b.id) } },
+    });
+  }
+
+  return briefs.length;
+}

@@ -5,7 +5,7 @@ import { getNarratives } from '../api/index.js';
 import { NarrativeSchema } from '../schemas/narrative.js';
 import { QuerySchema } from '../schemas/query.js';
 import { Query } from '../types/query.js';
-import { createDailyBriefIfNotExists } from '../utils/brief.js';
+import { createDailyBriefIfNotExists, pruneOldBriefs } from '../utils/brief.js';
 
 export default async function (fastify: FastifyInstance) {
   fastify.get<{ Querystring: Query }>(
@@ -36,6 +36,11 @@ export default async function (fastify: FastifyInstance) {
         request.log.info({ brief: brief.id }, 'Brief generated');
       } else {
         request.log.info('Brief already exists, skipping generation');
+      }
+
+      const deletedCount = await pruneOldBriefs();
+      if (deletedCount > 0) {
+        request.log.info({ deletedCount }, 'Old briefs pruned');
       }
 
       return narratives;

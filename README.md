@@ -4,7 +4,7 @@
 
 This is a demo project showcasing a simple, well-structured backend API using Node.js, Fastify, and TypeScript. It aggregates mock data from multiple crypto-related sources — such as Farcaster posts, CoinDesk articles, and Decrypt news — and returns topic-based summaries with sentiment analysis. While the data is static for now, the architecture is built to support real external APIs.
 
-The API also supports persistent, database-backed briefs: snapshots of topic-based narratives and sentiment, linked to their underlying summaries via a NarrativeRecord relation. These are stored in a PostgreSQL database using Prisma. For demo purposes, daily brief creation is triggered both internally (`node-cron`) and externally (GitHub Actions) — the external trigger is a workaround for free-tier hosting limitations where in-app schedulers can’t run reliably.
+The API also supports persistent, database-backed briefs: snapshots of topic-based narratives and sentiment, linked to their underlying summaries via a NarrativeRecord relation. These are stored in a PostgreSQL database using Prisma. Briefs are created daily and old ones are automatically pruned (keeping only the most recent 7 for demo purposes). For demo purposes, daily brief creation is triggered both internally (`node-cron`) and externally (GitHub Actions) — the external trigger is a workaround for free-tier hosting limitations where in-app schedulers can’t run reliably.
 
 In addition, a full CRUD Notes feature was added for demonstration purposes, showing additional DB interactions and endpoint patterns.
 
@@ -129,14 +129,17 @@ Then run an initial migration:
 yarn testdb:reset
 ```
 
-## Scheduled Jobs
+### Scheduled Jobs
 
-This project includes support for automated daily brief creation.
+This project includes support for automated daily brief creation and cleanup.
 
 ### Local/Production Setup (node-cron)
 
 The codebase includes a `createBriefJob` scheduled task (via `node-cron`) that runs daily at midnight.  
-In a normal production environment (e.g. dedicated server, container with uptime), this would automatically generate a new daily brief without external triggers.
+It will:
+
+- Generate a new daily brief (if one doesn’t already exist).
+- Prune old briefs, keeping only the most recent 7 for demo purposes.
 
 ### Free-tier Hosting Limitation
 
@@ -145,7 +148,7 @@ On free-tier Render, apps sleep when idle. This prevents in-app schedulers like 
 ### Workaround (External Trigger)
 
 To make daily jobs run reliably even on free-tier hosting, we use GitHub Actions to call the **`/narratives`** endpoint on a schedule.  
-This wakes the service and triggers daily brief creation externally.
+This wakes the service, creates a new daily brief, and prunes old ones externally.
 
 ---
 

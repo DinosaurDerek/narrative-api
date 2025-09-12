@@ -5,6 +5,7 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import envSetup from '../src/plugins/env.js';
 import corsSetup from '../src/plugins/cors.js';
 import narrativesRoutes from '../src/routes/narratives.js';
+import { Narrative } from '../src/types/narrative.js';
 
 describe('GET /narratives', () => {
   let app: ReturnType<typeof Fastify>;
@@ -42,7 +43,7 @@ describe('GET /narratives', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    const result = await response.json();
+    const result: Narrative[] = await response.json();
 
     expect(Array.isArray(result)).toBe(true);
     result.forEach(item => {

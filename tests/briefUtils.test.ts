@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 import { prisma } from '../src/lib/prisma.js';
 import {
   getBriefCreatedAtDate,
   createBrief,
   createDailyBriefIfNotExists,
+  pruneOldBriefs,
 } from '../src/utils/brief.js';
 import type { Narrative } from '../src/types/narrative.js';
 
@@ -82,5 +83,38 @@ describe('brief utils', () => {
 
     const briefs = await prisma.brief.findMany();
     expect(briefs.length).toBe(1);
+  });
+
+  it('prunes old briefs, keeping the latest limit', async () => {
+    // Create 10 briefs on different days
+    const today = new Date();
+    for (let i = 0; i < 10; i++) {
+      const briefDate = new Date(today);
+      briefDate.setUTCDate(today.getUTCDate() - i);
+      await prisma.brief.create({
+        data: {
+          createdAt: briefDate,
+          narratives: {
+            create: [{ topic: `topic${i}`, sentiment: 'neutral' }],
+          },
+        },
+      });
+    }
+
+    // Limit to 7 latest briefs
+    const deletedCount = await pruneOldBriefs(7);
+
+    expect(deletedCount).toBe(3); // 10 - 7 = 3 should be deleted
+
+    const remainingBriefs = await prisma.brief.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    expect(remainingBriefs.length).toBe(7);
+
+    // Ensure the newest dates remain
+    const newestDate = remainingBriefs[0].createdAt;
+    const oldestDate = remainingBriefs[6].createdAt;
+    expect(newestDate.getUTCDate()).toBe(today.getUTCDate());
+    expect(oldestDate.getUTCDate()).toBe(today.getUTCDate() - 6);
   });
 });
