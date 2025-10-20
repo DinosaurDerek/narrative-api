@@ -12,9 +12,25 @@ jobs:
       - name: Call narratives endpoint to trigger brief creation
         run: |
           echo "::group::Triggering narratives endpoint"
-          curl -s -X GET "${{ vars.RENDER_URL }}/narratives" \
-            -H "x-api-key: ${{ secrets.API_KEY }}" \
-            --fail -o response.json
-          echo "Response:"
-          cat response.json
+          for i in {1..3}; do
+            echo "Attempt $i..."
+            if curl -s -X GET "${{ vars.RENDER_URL }}/narratives" \
+              -H "x-api-key: ${{ secrets.API_KEY }}" \
+              --fail -o response.json; then
+              echo "Request succeeded on attempt $i."
+              cat response.json
+              echo "::endgroup::"
+              exit 0
+            else
+              echo "Request failed on attempt $i."
+              if [ $i -lt 3 ]; then
+                echo "Retrying in 90 seconds..."
+                sleep 90
+              fi
+            fi
+          done
+
+          echo "All attempts failed."
+          cat response.json || true
           echo "::endgroup::"
+          exit 1
